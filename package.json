@@ -1,0 +1,8 @@
+{
+  "name": "study-vue",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/bubbletg/study-vue.git",
+  "author": "BubbleTg <bubbletg@163.com>",
+  "license": "MIT"
+}
