@@ -31,6 +31,7 @@ extend(Vue.options.directives, platformDirectives)
 extend(Vue.options.components, platformComponents)
 
 // install platform patch function
+// inBrowser 是否浏览器环境
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
 // public mount method
@@ -41,7 +42,7 @@ Vue.prototype.$mount = function (
 ): Component {
   // 得到 el 
   el = el && inBrowser ? query(el) : undefined
-  
+
   return mountComponent(this, el, hydrating)
 }
 
