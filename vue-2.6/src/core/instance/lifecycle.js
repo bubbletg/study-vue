@@ -138,16 +138,27 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+/**
+ * 
+ * @param {*} vm 
+ * @param {*} el 
+ * @param {*} hydrating 
+ * @returns 
+ */
 export function mountComponent (
   vm: Component,
   el: ?Element,
   hydrating?: boolean
 ): Component {
+  // 缓存 el
   vm.$el = el
+  // 是否写render 函数
   if (!vm.$options.render) {
+    // 创建一个 空的 vnode
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
       /* istanbul ignore if */
+      // 相关警告 定义了 template ，第一个字符不是 # 
       if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
         vm.$options.el || el) {
         warn(
@@ -164,6 +175,7 @@ export function mountComponent (
       }
     }
   }
+  // 执行 生命周期钩子
   callHook(vm, 'beforeMount')
 
   let updateComponent
@@ -186,6 +198,7 @@ export function mountComponent (
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
+    // 更新 Component
     updateComponent = () => {
       vm._update(vm._render(), hydrating)
     }
@@ -194,6 +207,7 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // 通过 watcher  执行 updateComponent
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted && !vm._isDestroyed) {

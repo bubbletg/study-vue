@@ -17,25 +17,31 @@ const idToTemplate = cached(id => {
   return el && el.innerHTML
 })
 
+// 获得原型上的$mount 方法,缓存起来
 const mount = Vue.prototype.$mount
+// 重新定义 $mount
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
 ): Component {
+  // 得到 el 
   el = el && query(el)
 
   /* istanbul ignore if */
+  //  el 不能是 body,html,即 vue 不能直接挂载到 html 和 body  上
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !== 'production' && warn(
       `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
     )
     return this
   }
-
+  // 拿到 options 
   const options = this.$options
   // resolve template/el and convert to render function
+  // 判断是否定义 render 方法
   if (!options.render) {
     let template = options.template
+    // 判断是否 写 template 
     if (template) {
       if (typeof template === 'string') {
         if (template.charAt(0) === '#') {
@@ -57,8 +63,12 @@ Vue.prototype.$mount = function (
         return this
       }
     } else if (el) {
+      // 没有定义 template  时候 
+      // 通过 OuterHTML 得到 
+      // 就是 html 标签中 <div id ="app"></div> 的 子内容
       template = getOuterHTML(el)
     }
+    // 拿到 template 后，下面进行编译相关
     if (template) {
       /* istanbul ignore if */
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -82,6 +92,8 @@ Vue.prototype.$mount = function (
       }
     }
   }
+
+  // 执行mount 方法 ，这的 mount 是 const mount = Vue.prototype.$mount 得到的
   return mount.call(this, el, hydrating)
 }
 
