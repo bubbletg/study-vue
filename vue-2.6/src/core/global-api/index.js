@@ -18,6 +18,10 @@ import {
   defineReactive
 } from '../util/index'
 
+/**
+ * 给 Vue 这个对象本身扩展全局的静态方法
+ * @param {*} Vue 
+ */
 export function initGlobalAPI (Vue: GlobalAPI) {
   // config
   const configDef = {}

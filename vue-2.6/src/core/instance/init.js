@@ -13,6 +13,10 @@ import { extend, mergeOptions, formatComponentName } from '../util/index'
 let uid = 0
 
 export function initMixin (Vue: Class<Component>) {
+  /**
+   *  初始化
+   * @param {*} options 
+   */
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
     // a uid
@@ -28,7 +32,7 @@ export function initMixin (Vue: Class<Component>) {
 
     // a flag to avoid this being observed
     vm._isVue = true
-    // merge options
+    // merge options 合并 options
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
@@ -48,14 +52,22 @@ export function initMixin (Vue: Class<Component>) {
       vm._renderProxy = vm
     }
     // expose real self
+    // 下面 都是初始化 相关的函数
     vm._self = vm
+    // 初始化生命周期
     initLifecycle(vm)
+    // 初始化事件中心
     initEvents(vm)
+    // 初始化 render
     initRender(vm)
+    // 调用生命周期钩子
     callHook(vm, 'beforeCreate')
+
     initInjections(vm) // resolve injections before data/props
+    // 初始化 状态
     initState(vm)
     initProvide(vm) // resolve provide after data/props
+    // 调用生命周期钩子
     callHook(vm, 'created')
 
     /* istanbul ignore if */

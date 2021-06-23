@@ -35,6 +35,12 @@ const sharedPropertyDefinition = {
   set: noop
 }
 
+/**
+ * 代理
+ * @param {*} target  vm
+ * @param {*} sourceKey 
+ * @param {*} key 
+ */
 export function proxy (target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -42,15 +48,22 @@ export function proxy (target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.set = function proxySetter (val) {
     this[sourceKey][key] = val
   }
+  // target 就是 vm 
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+/**
+ * 初始化状态
+ * 包含 props\methods\data\computed\watch
+ * @param {*} vm 
+ */
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
   if (opts.props) initProps(vm, opts.props)
   if (opts.methods) initMethods(vm, opts.methods)
   if (opts.data) {
+    // 初始化 data
     initData(vm)
   } else {
     observe(vm._data = {}, true /* asRootData */)
@@ -61,6 +74,11 @@ export function initState (vm: Component) {
   }
 }
 
+/**
+ * 初始化 props
+ * @param {*} vm 
+ * @param {*} propsOptions 
+ */
 function initProps (vm: Component, propsOptions: Object) {
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
@@ -109,11 +127,18 @@ function initProps (vm: Component, propsOptions: Object) {
   toggleObserving(true)
 }
 
+/**
+ * 初始化data
+ * @param {*} vm 
+ */
 function initData (vm: Component) {
+  // 拿到 data
   let data = vm.$options.data
+  // 判断 data 是否为方法
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {}
+  // 判断 得到的 data 是否 为一个对象
   if (!isPlainObject(data)) {
     data = {}
     process.env.NODE_ENV !== 'production' && warn(
@@ -123,11 +148,15 @@ function initData (vm: Component) {
     )
   }
   // proxy data on instance
+  // 拿到对象的key
   const keys = Object.keys(data)
+  // 拿到 props
   const props = vm.$options.props
+  // 拿到 methods
   const methods = vm.$options.methods
   let i = keys.length
   while (i--) {
+    // 循环做对比，props 与 data 与 methods 上不能有相同的属性
     const key = keys[i]
     if (process.env.NODE_ENV !== 'production') {
       if (methods && hasOwn(methods, key)) {
@@ -144,10 +173,12 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+      // 把 key(data 中的 属性) 通过 _data来代理
       proxy(vm, `_data`, key)
     }
   }
   // observe data
+  // 对 data 进行响应式处理
   observe(data, true /* asRootData */)
 }
 
@@ -259,8 +290,14 @@ function createGetterInvoker(fn) {
   }
 }
 
+/**
+ * 初始化 Methods
+ * @param {*} vm 
+ * @param {*} methods 
+ */
 function initMethods (vm: Component, methods: Object) {
   const props = vm.$options.props
+  // 遍历 methods 中的key  key  即是方法
   for (const key in methods) {
     if (process.env.NODE_ENV !== 'production') {
       if (typeof methods[key] !== 'function') {
@@ -270,6 +307,7 @@ function initMethods (vm: Component, methods: Object) {
           vm
         )
       }
+      // 比较 props 与 methods 是否有相同的属性，有报错
       if (props && hasOwn(props, key)) {
         warn(
           `Method "${key}" has already been defined as a prop.`,
@@ -283,6 +321,7 @@ function initMethods (vm: Component, methods: Object) {
         )
       }
     }
+    // 使得 我们可以通过 this 来访问方法
     vm[key] = typeof methods[key] !== 'function' ? noop : bind(methods[key], vm)
   }
 }
