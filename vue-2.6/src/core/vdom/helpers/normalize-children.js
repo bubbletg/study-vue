@@ -16,11 +16,14 @@ import { isFalse, isTrue, isDef, isUndef, isPrimitive } from 'shared/util'
 // thing with Array.prototype.concat. It is guaranteed to be only 1-level deep
 // because functional components already normalize their own children.
 export function simpleNormalizeChildren (children: any) {
+  // 遍历 children
   for (let i = 0; i < children.length; i++) {
+    // 如果 children 的 每一项是一个数组，把它拍平
     if (Array.isArray(children[i])) {
       return Array.prototype.concat.apply([], children)
     }
   }
+  // 最后返回
   return children
 }
 
@@ -28,10 +31,11 @@ export function simpleNormalizeChildren (children: any) {
 // e.g. <template>, <slot>, v-for, or when the children is provided by user
 // with hand-written render functions / JSX. In such cases a full normalization
 // is needed to cater to all possible types of children values.
-export function normalizeChildren (children: any): ?Array<VNode> {
+export function  normalizeChildren (children: any): ?Array<VNode> {
+  // 基础类型，直接返回一个一维数组，
   return isPrimitive(children)
     ? [createTextVNode(children)]
-    : Array.isArray(children)
+    : Array.isArray(children) // 是数组，进行 normalizeArrayChildren
       ? normalizeArrayChildren(children)
       : undefined
 }
@@ -39,18 +43,27 @@ export function normalizeChildren (children: any): ?Array<VNode> {
 function isTextNode (node): boolean {
   return isDef(node) && isDef(node.text) && isFalse(node.isComment)
 }
-
+/**
+ * 最终目的 也是把 children 放在一个一位数组里面
+ * @param {*} children 
+ * @param {*} nestedIndex 
+ * @returns 
+ */
 function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNode> {
+  // 最终返回的 res 数组
   const res = []
   let i, c, lastIndex, last
+  // 遍历 children
   for (i = 0; i < children.length; i++) {
     c = children[i]
     if (isUndef(c) || typeof c === 'boolean') continue
     lastIndex = res.length - 1
     last = res[lastIndex]
     //  nested
+    // 当children 是一个 array
     if (Array.isArray(c)) {
       if (c.length > 0) {
+        // 递归 拍平
         c = normalizeArrayChildren(c, `${nestedIndex || ''}_${i}`)
         // merge adjacent text nodes
         if (isTextNode(c[0]) && isTextNode(last)) {

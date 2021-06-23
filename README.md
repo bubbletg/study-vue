@@ -2,6 +2,10 @@
 
 学习参考地址：https://ustbhuangyi.github.io/vue-analysis/v2/prepare/
 
+注：该文大部分内容来自：https://ustbhuangyi.github.io/vue-analysis/v2/prepare/
+
+本文只作为一个学习笔记记录过程。
+
 ## vue 的目录结构
 
 > ```text
@@ -29,4 +33,22 @@
 ### render
 
 `vm._render` 最终是通过执行 `createElement` 方法并返回的是 `vnode`，它是一个虚拟 Node。
+
+### createElement
+
+createElement方法实际上是对createElement方法的封装，它允许传入的参数更加灵活，在处理这些参数后，调用真正创建 VNode 的函数createElement.
+
+`createElement` 函数的流程略微有点多，我们接下来主要分析 2 个重点的流程 —— `children` 的规范化以及 VNode 的创建。
+
+#### children 的规范化
+
+`simpleNormalizeChildren` 方法调用场景是 `render` 函数是编译生成的。理论上编译生成的 `children` 都已经是 VNode 类型的，但这里有一个例外，就是 `functional component` 函数式组件返回的是一个数组而不是一个根节点，所以会通过 `Array.prototype.concat` 方法把整个 `children` 数组打平，让它的深度只有一层。
+
+`normalizeChildren` 方法的调用场景有 2 种，一个场景是 `render` 函数是用户手写的，当 `children` 只有一个节点的时候，Vue.js 从接口层面允许用户把 `children` 写成基础类型用来创建单个简单的文本节点，这种情况会调用 `createTextVNode` 创建一个文本节点的 VNode；另一个场景是当编译 `slot`、`v-for` 的时候会产生嵌套数组的情况，会调用 `normalizeArrayChildren` 方法。
+
+#### VNode 的创建
+
+先对 `tag` 做判断，如果是 `string` 类型，则接着判断如果是内置的一些节点，则直接创建一个普通 VNode，如果是为已注册的组件名，则通过 `createComponent` 创建一个组件类型的 VNode，否则创建一个未知的标签的 VNode。 如果是 `tag` 一个 `Component` 类型，则直接调用 `createComponent` 创建一个组件类型的 VNode 节点。
+
+
 
