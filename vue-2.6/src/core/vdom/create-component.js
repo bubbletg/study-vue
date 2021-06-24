@@ -101,7 +101,7 @@ const hooksToMerge = Object.keys(componentVNodeHooks)
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
-  context: Component,
+  context: Component, // 当前 vm 实例
   children: ?Array<VNode>,
   tag?: string
 ): VNode | Array<VNode> | void {
@@ -109,15 +109,19 @@ export function createComponent (
     return
   }
 
+  // 拿到的是 Vue
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
+  // Ctor 是对象，
   if (isObject(Ctor)) {
+    // extend 定义在 src/core/global-api/extend.js
     Ctor = baseCtor.extend(Ctor)
   }
 
   // if at this stage it's not a constructor or an async component factory,
   // reject.
+  // Ctor 不是 方法，返回错误
   if (typeof Ctor !== 'function') {
     if (process.env.NODE_ENV !== 'production') {
       warn(`Invalid Component definition: ${String(Ctor)}`, context)
@@ -126,6 +130,7 @@ export function createComponent (
   }
 
   // async component
+  // 下面👇是异步组件
   let asyncFactory
   if (isUndef(Ctor.cid)) {
     asyncFactory = Ctor
@@ -143,6 +148,8 @@ export function createComponent (
       )
     }
   }
+  // 上面👆是异步组件
+
 
   data = data || {}
 
@@ -159,16 +166,19 @@ export function createComponent (
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
   // functional component
+  //函数组件处理
   if (isTrue(Ctor.options.functional)) {
     return createFunctionalComponent(Ctor, propsData, data, context, children)
   }
-
+  // 下面是对自定义事件处理 👇
   // extract listeners, since these needs to be treated as
   // child component listeners instead of DOM listeners
   const listeners = data.on
   // replace with listeners with .native modifier
   // so it gets processed during parent component patch.
   data.on = data.nativeOn
+  // 上面是对自定义事件处理 👆
+
 
   if (isTrue(Ctor.options.abstract)) {
     // abstract components do not keep anything
@@ -183,10 +193,12 @@ export function createComponent (
   }
 
   // install component management hooks onto the placeholder node
+  // 安装一些组件的钩子
   installComponentHooks(data)
 
   // return a placeholder vnode
   const name = Ctor.options.name || tag
+  // 创建 vnode
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
     data, undefined, undefined, undefined, context,
@@ -223,18 +235,30 @@ export function createComponentInstanceForVnode (
   return new vnode.componentOptions.Ctor(options)
 }
 
+/**
+ * 安装组件一些钩子
+ * @param {*} data 
+ */
 function installComponentHooks (data: VNodeData) {
   const hooks = data.hook || (data.hook = {})
+  // 遍历组件默认钩子 hooks
   for (let i = 0; i < hooksToMerge.length; i++) {
     const key = hooksToMerge[i]
     const existing = hooks[key]
     const toMerge = componentVNodeHooks[key]
     if (existing !== toMerge && !(existing && existing._merged)) {
+      // 合并在 hooks 上
       hooks[key] = existing ? mergeHook(toMerge, existing) : toMerge
     }
   }
 }
 
+/**
+ * 合并 hook
+ * @param {*} f1 
+ * @param {*} f2 
+ * @returns 
+ */
 function mergeHook (f1: any, f2: any): Function {
   const merged = (a, b) => {
     // flow complains about extra args which is why we use any
