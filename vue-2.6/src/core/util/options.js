@@ -142,15 +142,17 @@ strats.data = function (
 
 /**
  * Hooks and props are merged as arrays.
+ * 合并生命周期
  */
 function mergeHook (
   parentVal: ?Array<Function>,
   childVal: ?Function | ?Array<Function>
 ): ?Array<Function> {
+
   const res = childVal
     ? parentVal
-      ? parentVal.concat(childVal)
-      : Array.isArray(childVal)
+      ? parentVal.concat(childVal) // 合并父 和 子 
+      : Array.isArray(childVal)  
         ? childVal
         : [childVal]
     : parentVal
@@ -169,6 +171,8 @@ function dedupeHooks (hooks) {
   return res
 }
 
+// 生命周期的合并策略
+// LIFECYCLE_HOOKS 
 LIFECYCLE_HOOKS.forEach(hook => {
   strats[hook] = mergeHook
 })
@@ -269,6 +273,7 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 
 /**
  * Validate component names
+ * 验证组件名称
  */
 function checkComponents (options: Object) {
   for (const key in options.components) {
@@ -385,11 +390,12 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
  */
-export function mergeOptions (
+export function  mergeOptions (
   parent: Object,
   child: Object,
   vm?: Component
 ): Object {
+  // 验证组件名称
   if (process.env.NODE_ENV !== 'production') {
     checkComponents(child)
   }
@@ -397,7 +403,7 @@ export function mergeOptions (
   if (typeof child === 'function') {
     child = child.options
   }
-
+  // normalize 操作,规范化
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
@@ -406,8 +412,10 @@ export function mergeOptions (
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
   // Only merged options has the _base property.
+  // 只有合并的选项具有_base属性。
   if (!child._base) {
     if (child.extends) {
+      // 递归调用
       parent = mergeOptions(parent, child.extends, vm)
     }
     if (child.mixins) {
@@ -417,6 +425,7 @@ export function mergeOptions (
     }
   }
 
+  // 下面是 合并把属性添加到 options对象上
   const options = {}
   let key
   for (key in parent) {
@@ -428,6 +437,7 @@ export function mergeOptions (
     }
   }
   function mergeField (key) {
+    // strats 上添加了对应不同的属性有不同的合并策略
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)
   }

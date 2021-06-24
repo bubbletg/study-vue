@@ -44,10 +44,14 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+      //返回的是Vue 实例
       const child = vnode.componentInstance = createComponentInstanceForVnode(
-        vnode,
-        activeInstance
+        vnode, // 组件vnode
+        activeInstance // 父 vm ，也是当前vm
       )
+      // 挂载子组件
+      // 这里 $mount 相当于执行 child.$mount(undefined, false)，
+      // 它最终会调用 mountComponent 方法，进而执行 vm._render() 方法
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
@@ -224,7 +228,7 @@ export function createComponentInstanceForVnode (
   const options: InternalComponentOptions = {
     _isComponent: true,
     _parentVnode: vnode,
-    parent
+    parent 
   }
   // check inline-template render functions
   const inlineTemplate = vnode.data.inlineTemplate
@@ -232,6 +236,7 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // 执行 构造器
   return new vnode.componentOptions.Ctor(options)
 }
 
@@ -245,6 +250,7 @@ function installComponentHooks (data: VNodeData) {
   for (let i = 0; i < hooksToMerge.length; i++) {
     const key = hooksToMerge[i]
     const existing = hooks[key]
+    // 
     const toMerge = componentVNodeHooks[key]
     if (existing !== toMerge && !(existing && existing._merged)) {
       // 合并在 hooks 上
