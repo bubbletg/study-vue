@@ -1,12 +1,13 @@
 <template>
   <div id="app">
-    <HelloWorld/>
+    <div v-if="flag">{{ msg }}</div>
+    <div v-else>{{ msg1 }}</div>
+    <button @click="change">change</button>
+    <button @click="change">toggle</button>
   </div>
 </template>
 <script>
-import HelloWorld from './components/HelloWorld.vue';
 export default {
-  components: { HelloWorld },
   name:"APP",
   data() {
     return {
