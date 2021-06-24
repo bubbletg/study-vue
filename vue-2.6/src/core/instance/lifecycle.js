@@ -30,10 +30,13 @@ export function setActiveInstance(vm: Component) {
 }
 
 export function initLifecycle (vm: Component) {
+  // 这的 vm 是子组件实例
   const options = vm.$options
 
   // locate first non-abstract parent
+  // parent 是 父组件 实例
   let parent = options.parent
+  //
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent

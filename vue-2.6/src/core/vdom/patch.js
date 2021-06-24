@@ -237,11 +237,22 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * 创建组件dom
+   * @param {*} vnode 
+   * @param {*} insertedVnodeQueue 
+   * @param {*} parentElm 
+   * @param {*} refElm 
+   * @returns 
+   */
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
     if (isDef(i)) {
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
+      // 执行 hook 上的 钩子
       if (isDef(i = i.hook) && isDef(i = i.init)) {
+        // i 是 init 方法 在 src/core/vdom/create-component.js 定义
+        // componentVNodeHooks 对象的 init 方法
         i(vnode, false /* hydrating */)
       }
       // after calling the init hook, if the vnode is a child component
@@ -249,7 +260,9 @@ export function createPatchFunction (backend) {
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
       if (isDef(vnode.componentInstance)) {
+        // 初始化
         initComponent(vnode, insertedVnodeQueue)
+        // 插入
         insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReactivated)) {
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
