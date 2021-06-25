@@ -138,11 +138,22 @@ export function createComponent (
   let asyncFactory
   if (isUndef(Ctor.cid)) {
     asyncFactory = Ctor
+    /**
+     * 异步组件，工厂函数方式
+     */
+    // Vue.component("HelloWorld", function (resolve, reject) {
+    //   require(["./components/HelloWorld.vue"], function (res) {
+    //     // 当组件加载成功，执行 resolve
+    //     resolve(res);
+    //   });
+    // });
+    // asyncFactory 就是  Vue.component() 中的匿名函数
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor, context)
     if (Ctor === undefined) {
       // return a placeholder node for async component, which is rendered
       // as a comment node but preserves all the raw information for the node.
       // the information will be used for async server-rendering and hydration.
+      // 创建一个空的 vnode,最终会渲染成一个空的异步节点
       return createAsyncPlaceholder(
         asyncFactory,
         data,

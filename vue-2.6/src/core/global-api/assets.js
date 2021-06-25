@@ -20,7 +20,7 @@ export function initAssetRegisters (Vue: GlobalAPI) {
           // 组件名校验
           validateComponentName(id)
         }
-        // 
+        // 判断 definition 是否为普通对象
         if (type === 'component' && isPlainObject(definition)) {
           definition.name = definition.name || id
           // 把 definition  转换为构造器

@@ -98,13 +98,20 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // updated in a parent's updated hook.
   }
 
+  /**
+   * 执行渲染 watcher 的 updage 方法
+   */
   Vue.prototype.$forceUpdate = function () {
     const vm: Component = this
     if (vm._watcher) {
+      // 最终调用 updateComponent 中的 vm._update 方法
       vm._watcher.update()
     }
   }
-
+  /**
+   * 组件销毁是调用
+   * @returns 
+   */
   Vue.prototype.$destroy = function () {
     const vm: Component = this
     if (vm._isBeingDestroyed) {
