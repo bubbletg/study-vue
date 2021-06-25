@@ -448,6 +448,9 @@ export function  mergeOptions (
  * Resolve an asset.
  * This function is used because child instances need access
  * to assets defined in its ancestor chain.
+ * 根据 组件id 查找 要注册的组件
+ * id 支持 驼峰等不同的写法，
+ * 
  */
 export function resolveAsset (
   options: Object,
@@ -474,5 +477,6 @@ export function resolveAsset (
       options
     )
   }
+  // 最后返回的是一个组件
   return res
 }

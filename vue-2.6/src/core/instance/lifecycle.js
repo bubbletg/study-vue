@@ -98,18 +98,26 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // updated in a parent's updated hook.
   }
 
+  /**
+   * 执行渲染 watcher 的 updage 方法
+   */
   Vue.prototype.$forceUpdate = function () {
     const vm: Component = this
     if (vm._watcher) {
+      // 最终调用 updateComponent 中的 vm._update 方法
       vm._watcher.update()
     }
   }
-
+  /**
+   * 组件销毁是调用
+   * @returns 
+   */
   Vue.prototype.$destroy = function () {
     const vm: Component = this
     if (vm._isBeingDestroyed) {
       return
     }
+    // 调用生命周期钩子
     callHook(vm, 'beforeDestroy')
     vm._isBeingDestroyed = true
     // remove self from parent
@@ -324,6 +332,7 @@ export function activateChildComponent (vm: Component, direct?: boolean) {
     for (let i = 0; i < vm.$children.length; i++) {
       activateChildComponent(vm.$children[i])
     }
+    // 执行生命周期钩子
     callHook(vm, 'activated')
   }
 }
@@ -340,16 +349,24 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
     for (let i = 0; i < vm.$children.length; i++) {
       deactivateChildComponent(vm.$children[i])
     }
+    // 执行生命周期钩子
     callHook(vm, 'deactivated')
   }
 }
 
+/**
+ * 执行生命周期钩子方法
+ * @param {*} vm 
+ * @param {*} hook 
+ */
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
+  // 得到一个数组
   const handlers = vm.$options[hook]
   const info = `${hook} hook`
   if (handlers) {
+    // 循环遍历 执行 生命周期钩子
     for (let i = 0, j = handlers.length; i < j; i++) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }

@@ -34,6 +34,7 @@ export function invokeWithErrorHandling (
 ) {
   let res
   try {
+    // 执行生命周期函数
     res = args ? handler.apply(context, args) : handler.call(context)
     if (isPromise(res)) {
       res.catch(e => handleError(e, vm, info + ` (Promise/async)`))
