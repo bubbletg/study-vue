@@ -4,16 +4,19 @@ const zlib = require('zlib')
 const rollup = require('rollup')
 const terser = require('terser')
 
+// 是否存在'dist'目录
 if (!fs.existsSync('dist')) {
+  // 创建 dist 目录
   fs.mkdirSync('dist')
 }
 
+// 获取所有的配置项目
 let builds = require('./config').getAllBuilds()
 
 // filter builds via command line arg
 if (process.argv[2]) {
-  const filters = process.argv[2].split(',')
-  builds = builds.filter(b => {
+  const filters = process.argv[2].split(',') // web-runtime-cjs,web-server-renderer
+  builds = builds.filter(b => { // 过滤出要打包的哪个配置
     return filters.some(f => b.output.file.indexOf(f) > -1 || b._name.indexOf(f) > -1)
   })
 } else {
@@ -28,7 +31,7 @@ build(builds)
 function build (builds) {
   let built = 0
   const total = builds.length
-  const next = () => {
+  const next = () => {  // 循环调用 rllup 打包
     buildEntry(builds[built]).then(() => {
       built++
       if (built < total) {
@@ -71,7 +74,7 @@ function write (dest, code, zip) {
       resolve()
     }
 
-    fs.writeFile(dest, code, err => {
+    fs.writeFile(dest, code, err => { // 将打包后的结果写入文件
       if (err) return reject(err)
       if (zip) {
         zlib.gzip(code, (err, zipped) => {

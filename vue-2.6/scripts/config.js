@@ -34,14 +34,18 @@ const resolve = p => {
   }
 }
 
+// builds 是维护的一个打包对象
 const builds = {
   // Runtime only (CommonJS). Used by bundlers e.g. Webpack & Browserify
+  // vue 有两个类型  
+  // 1. Runtime only 在运行时用
+  // 2. runtime-with-compiler 用户可以写 template, new Vue({template})
   'web-runtime-cjs-dev': {
-    entry: resolve('web/entry-runtime.js'),
-    dest: resolve('dist/vue.runtime.common.dev.js'),
-    format: 'cjs',
-    env: 'development',
-    banner
+    entry: resolve('web/entry-runtime.js'), // 打包前路径
+    dest: resolve('dist/vue.runtime.common.dev.js'), // 打包后路径
+    format: 'cjs',  // 打包格式
+    env: 'development', // 
+    banner // 标识
   },
   'web-runtime-cjs-prod': {
     entry: resolve('web/entry-runtime.js'),
@@ -107,7 +111,7 @@ const builds = {
   'web-runtime-dev': {
     entry: resolve('web/entry-runtime.js'),
     dest: resolve('dist/vue.runtime.js'),
-    format: 'umd',
+    format: 'umd', // umd 统一模块规范 支持 commonjs amd cmd 模块
     env: 'development',
     banner
   },
@@ -214,7 +218,7 @@ const builds = {
 }
 
 function genConfig (name) {
-  const opts = builds[name]
+  const opts = builds[name] // 获取到每个 key 对应的值
   const config = {
     input: opts.entry,
     external: opts.external,
@@ -262,5 +266,6 @@ if (process.env.TARGET) {
   module.exports = genConfig(process.env.TARGET)
 } else {
   exports.getBuild = genConfig
+  // 将对象所有的 key 转换成数组
   exports.getAllBuilds = () => Object.keys(builds).map(genConfig)
 }
