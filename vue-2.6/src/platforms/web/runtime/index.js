@@ -41,6 +41,8 @@ Vue.prototype.$mount = function (
   hydrating?: boolean
 ): Component {
   // 得到 el 
+  // 当用户直接使用了 runtimeonly 就会执行当前 $mount 方法 ，不会执行 vue-2.6/src/platforms/web/entry-runtime-with-compiler.js 下的$mount 方法
+  // 所以需要从新得到 el
   el = el && inBrowser ? query(el) : undefined
 
   return mountComponent(this, el, hydrating)

@@ -559,6 +559,16 @@ export function createPatchFunction (backend) {
     }
   }
 
+  /**
+   * 比较虚拟节点
+   * @param {*} oldVnode 
+   * @param {*} vnode 
+   * @param {*} insertedVnodeQueue 
+   * @param {*} ownerArray 
+   * @param {*} index 
+   * @param {*} removeOnly 
+   * @returns 
+   */
   function patchVnode (
     oldVnode,
     vnode,
@@ -759,6 +769,7 @@ export function createPatchFunction (backend) {
   }
   /**
    * 返回 patch  方法
+   * 初次渲染，和 更新 主要都在该函数
    */
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
     
@@ -780,6 +791,7 @@ export function createPatchFunction (backend) {
       const isRealElement = isDef(oldVnode.nodeType)
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // patch existing root node
+        // 比不对节点和孩子
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
       } else {
         // 不是真实元素
@@ -814,7 +826,7 @@ export function createPatchFunction (backend) {
         // replacing existing element
         // 替换现有的元素
         const oldElm = oldVnode.elm
-        const parentElm = nodeOps.parentNode(oldElm)
+        const parentElm = nodeOps.parentNode(oldElm) // 取得当前元素的父亲
 
         // create new node
         // 创建节点 - 把vnode 挂载到真实的 dom 上

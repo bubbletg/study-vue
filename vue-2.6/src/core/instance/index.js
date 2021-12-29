@@ -22,10 +22,10 @@ function Vue (options) {
   this._init(options)
 }
 
-initMixin(Vue)
-stateMixin(Vue)
-eventsMixin(Vue)
-lifecycleMixin(Vue)
-renderMixin(Vue)
+initMixin(Vue) // 初始化 Vue.prototype._init
+stateMixin(Vue) // 初始化状态
+eventsMixin(Vue) // 实现发布订阅 Vue.prototype.$on/Vue.prototype.$emit
+lifecycleMixin(Vue) // Vue.prtotype._update 的实现
+renderMixin(Vue) //  Vue.prtotype._render 的实现
 
 export default Vue

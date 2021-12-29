@@ -1,8 +1,8 @@
 /* @flow */
 
-import * as nodeOps from 'web/runtime/node-ops'
+import * as nodeOps from 'web/runtime/node-ops'   // dom 操作的方法
 import { createPatchFunction } from 'core/vdom/patch'
-import baseModules from 'core/vdom/modules/index'
+import baseModules from 'core/vdom/modules/index' // 维护一些基础属性
 import platformModules from 'web/runtime/modules/index'
 
 // the directive module should be applied last, after all

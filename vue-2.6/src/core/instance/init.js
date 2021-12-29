@@ -20,7 +20,7 @@ export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
     // a uid
-    vm._uid = uid++
+    vm._uid = uid++ // 每一个组件都有一个_uid
 
     let startTag, endTag
     /* istanbul ignore if */
@@ -56,12 +56,12 @@ export function initMixin (Vue: Class<Component>) {
     // expose real self
     // 下面 都是初始化 相关的函数
     vm._self = vm
-    // 初始化生命周期
+    // 初始化 组件的父子关系 即生命周期
     initLifecycle(vm)
     // 初始化事件中心
     initEvents(vm)
     // 初始化 render
-    initRender(vm)
+    initRender(vm) // 会初始化 vm.$createElement 相当于 h 方法
     // 调用生命周期钩子
     callHook(vm, 'beforeCreate')
 
@@ -80,7 +80,7 @@ export function initMixin (Vue: Class<Component>) {
     }
 
     if (vm.$options.el) {
-      vm.$mount(vm.$options.el)
+      vm.$mount(vm.$options.el) // 挂载
     }
   }
 }

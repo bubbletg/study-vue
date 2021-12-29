@@ -173,12 +173,12 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
-      // 把 key(data 中的 属性) 通过 _data来代理
+      // 将 vm._data 通过 vm代理 即可以通过vm直接访问
       proxy(vm, `_data`, key)
     }
   }
   // observe data
-  // 对 data 进行响应式处理
+  // 初始化数据 对 data 进行响应式处理 ，即依赖收集
   observe(data, true /* asRootData */)
 }
 

@@ -69,17 +69,17 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // 数据更新时候会用到
     const vm: Component = this
     const prevEl = vm.$el
-    const prevVnode = vm._vnode
+    const prevVnode = vm._vnode // 拿到上一次的vnode 
     const restoreActiveInstance = setActiveInstance(vm)
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
-    if (!prevVnode) {
+    if (!prevVnode) { // 如果上一次的 vnode 没有，则就是初次渲染
       // initial render
       // __patch__ 在 src/platforms/web/runtime/index.js
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
-      // updates
+      // updates 更新 
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
     restoreActiveInstance()
@@ -158,7 +158,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
 }
 
 /**
- * 
+ *  Vue.prototype.$mount 最终执行方法
  * @param {*} vm 
  * @param {*} el 
  * @param {*} hydrating 
@@ -218,8 +218,9 @@ export function mountComponent (
     }
   } else {
     // 更新 Component
-    updateComponent = () => {
-      vm._update(vm._render(), hydrating)
+    updateComponent = () => {  // 渲染 watcher 会调用此方法
+      // vm._render()  执行会返回一个 vnode
+      vm._update(vm._render(), hydrating) // 渲染
     }
   }
 

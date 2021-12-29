@@ -20,7 +20,7 @@ const idToTemplate = cached(id => {
 // 获得原型上的$mount 方法,缓存起来
 const mount = Vue.prototype.$mount
 // 重新定义 $mount
-Vue.prototype.$mount = function (
+Vue.prototype.$mount = function ( // 切片 ，函数劫持 
   el?: string | Element,
   hydrating?: boolean
 ): Component {
@@ -35,7 +35,7 @@ Vue.prototype.$mount = function (
     )
     return this
   }
-  // 拿到 options 
+  // 拿到 options ，用户传递的所有参数
   const options = this.$options
   // resolve template/el and convert to render function
   // 判断是否定义 render 方法
@@ -44,7 +44,7 @@ Vue.prototype.$mount = function (
     // 判断是否 写 template 
     if (template) {
       if (typeof template === 'string') {
-        if (template.charAt(0) === '#') {
+        if (template.charAt(0) === '#') { // 判断 template 是否以# 开头    // new Vue({ template: "#xxxx"})
           template = idToTemplate(template)
           /* istanbul ignore if */
           if (process.env.NODE_ENV !== 'production' && !template) {
@@ -55,7 +55,7 @@ Vue.prototype.$mount = function (
           }
         }
       } else if (template.nodeType) {
-        template = template.innerHTML
+        template = template.innerHTML // 获取模版内容
       } else {
         if (process.env.NODE_ENV !== 'production') {
           warn('invalid template option:' + template, this)
@@ -68,13 +68,15 @@ Vue.prototype.$mount = function (
       // 就是 html 标签中 <div id ="app"></div> 的 子内容
       template = getOuterHTML(el)
     }
+
+    // template 的查找顺序 先找 render函数 -> template -> html 中 template
     // 拿到 template 后，下面进行编译相关
     if (template) {
       /* istanbul ignore if */
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile')
       }
-
+      // 把模版变成 render 函数
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,
@@ -82,6 +84,7 @@ Vue.prototype.$mount = function (
         delimiters: options.delimiters,
         comments: options.comments
       }, this)
+
       options.render = render
       options.staticRenderFns = staticRenderFns
 
