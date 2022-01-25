@@ -87,11 +87,14 @@ function initProps (vm: Component, propsOptions: Object) {
   const keys = vm.$options._propKeys = []
   const isRoot = !vm.$parent
   // root instance props should be converted
+  // 如果是根元素，属性需要定义为响应式
   if (!isRoot) {
     toggleObserving(false)
   }
+  // 循环用户定义的 props 对象
   for (const key in propsOptions) {
     keys.push(key)
+    // 校验用户定义的属性和传入的属性，拿到其值
     const value = validateProp(key, propsOptions, propsData, vm)
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
@@ -115,11 +118,13 @@ function initProps (vm: Component, propsOptions: Object) {
         }
       })
     } else {
+      // 对 props 属性定义成响应式的
       defineReactive(props, key, value)
     }
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
+    // 代理
     if (!(key in vm)) {
       proxy(vm, `_props`, key)
     }
@@ -194,7 +199,7 @@ export function getData (data: Function, vm: Component): any {
     popTarget()
   }
 }
-
+// 标记计算属性 watcher
 const computedWatcherOptions = { lazy: true }
 
 function initComputed (vm: Component, computed: Object) {
@@ -226,6 +231,7 @@ function initComputed (vm: Component, computed: Object) {
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
+    // 
     if (!(key in vm)) {
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
@@ -237,7 +243,7 @@ function initComputed (vm: Component, computed: Object) {
     }
   }
 }
-
+// 定义计算属性
 export function defineComputed (
   target: any,
   key: string,
@@ -273,9 +279,11 @@ function createComputedGetter (key) {
   return function computedGetter () {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+      // 判断是否脏数据
       if (watcher.dirty) {
         watcher.evaluate()
       }
+      // 对计算属性收集依赖，主要收集的是渲染watcher
       if (Dep.target) {
         watcher.depend()
       }
