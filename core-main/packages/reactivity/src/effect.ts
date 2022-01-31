@@ -52,14 +52,14 @@ export const ITERATE_KEY = Symbol(__DEV__ ? 'iterate' : '')
 export const MAP_KEY_ITERATE_KEY = Symbol(__DEV__ ? 'Map key iterate' : '')
 
 export class ReactiveEffect<T = any> {
-  active = true
-  deps: Dep[] = []
+  active = true // effect 是否激活
+  deps: Dep[] = [] // effect 对应的属性
 
   /**
    * Can be attached after creation
    * @internal
    */
-  computed?: ComputedRefImpl<T>
+  computed?: ComputedRefImpl<T>  // 计算属性
   /**
    * @internal
    */
@@ -85,6 +85,7 @@ export class ReactiveEffect<T = any> {
     }
     if (!effectStack.length || !effectStack.includes(this)) {
       try {
+        // 使用 effect 栈型结构保存所有栈，栈顶是当前执行的 effect
         effectStack.push((activeEffect = this))
         enableTracking()
 
@@ -93,9 +94,9 @@ export class ReactiveEffect<T = any> {
         if (effectTrackDepth <= maxMarkerBits) {
           initDepMarkers(this)
         } else {
-          cleanupEffect(this)
+          cleanupEffect(this) // 每次重新收集依赖，每次取值都会执行 effect 取值，调用get方法，重新收集依赖
         }
-        return this.fn()
+        return this.fn() // 执行 effect 中的回调函数
       } finally {
         if (effectTrackDepth <= maxMarkerBits) {
           finalizeDepMarkers(this)
@@ -104,9 +105,9 @@ export class ReactiveEffect<T = any> {
         trackOpBit = 1 << --effectTrackDepth
 
         resetTracking()
-        effectStack.pop()
+        effectStack.pop() // effect 出栈
         const n = effectStack.length
-        activeEffect = n > 0 ? effectStack[n - 1] : undefined
+        activeEffect = n > 0 ? effectStack[n - 1] : undefined // 当前 effect
       }
     }
   }
@@ -150,22 +151,33 @@ export interface ReactiveEffectRunner<T = any> {
   effect: ReactiveEffect
 }
 
+/**
+ * 副作用函数
+ * @param fn 回调函数
+ * @param options 配置
+ * @returns
+ */
 export function effect<T = any>(
   fn: () => T,
   options?: ReactiveEffectOptions
 ): ReactiveEffectRunner {
+
   if ((fn as ReactiveEffectRunner).effect) {
     fn = (fn as ReactiveEffectRunner).effect.fn
   }
 
+  // 创建响应式 Effect
   const _effect = new ReactiveEffect(fn)
   if (options) {
     extend(_effect, options)
     if (options.scope) recordEffectScope(_effect, options.scope)
   }
+  // 是否懒执行
   if (!options || !options.lazy) {
-    _effect.run()
+    _effect.run() // effect 执行，最终执行 fn 方法
   }
+
+  // effect 方法备份，用于返回
   const runner = _effect.run.bind(_effect) as ReactiveEffectRunner
   runner.effect = _effect
   return runner
@@ -193,14 +205,30 @@ export function resetTracking() {
   shouldTrack = last === undefined ? true : last
 }
 
+/**
+ * 依赖收集
+ * @param target
+ * @param type
+ * @param key
+ * @returns
+ */
 export function track(target: object, type: TrackOpTypes, key: unknown) {
+  // 是否收集依赖
   if (!isTracking()) {
+    // 不收集依赖
     return
   }
+
+  /**
+   * 用于维护 target 的key 与 effect 之间的关系
+   * targetMap ===>  WeakMap ----  key => target -- value (map)=>{ key => Set }
+   * targetMap  = new WeakMap(target:new Map({key:new Set(efffect)}))
+   */
   let depsMap = targetMap.get(target)
   if (!depsMap) {
     targetMap.set(target, (depsMap = new Map()))
   }
+
   let dep = depsMap.get(key)
   if (!dep) {
     depsMap.set(key, (dep = createDep()))
@@ -217,6 +245,11 @@ export function isTracking() {
   return shouldTrack && activeEffect !== undefined
 }
 
+/**
+ * 收集 effect
+ * @param dep
+ * @param debuggerEventExtraInfo
+ */
 export function trackEffects(
   dep: Dep,
   debuggerEventExtraInfo?: DebuggerEventExtraInfo
@@ -233,6 +266,7 @@ export function trackEffects(
   }
 
   if (shouldTrack) {
+    // 收集当前的 effect
     dep.add(activeEffect!)
     activeEffect!.deps.push(dep)
     if (__DEV__ && activeEffect!.onTrack) {
@@ -248,6 +282,16 @@ export function trackEffects(
   }
 }
 
+/**
+ * 派发更新
+ * @param target 目标
+ * @param type 操作类型
+ * @param key key
+ * @param newValue 新值
+ * @param oldValue 老值
+ * @param oldTarget 老目标
+ * @returns
+ */
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -256,24 +300,29 @@ export function trigger(
   oldValue?: unknown,
   oldTarget?: Map<unknown, unknown> | Set<unknown>
 ) {
+  // 拿到 目标对象对应 的map
   const depsMap = targetMap.get(target)
   if (!depsMap) {
     // never been tracked
     return
   }
 
+  // 针对不同情况处理
   let deps: (Dep | undefined)[] = []
   if (type === TriggerOpTypes.CLEAR) {
     // collection being cleared
     // trigger all effects for target
-    deps = [...depsMap.values()]
+    deps = [...depsMap.values()] // 直接拿到所有的依赖
   } else if (key === 'length' && isArray(target)) {
+    // 是数组，且length 变化
+    // 重新依赖收集，依赖收集收集更新
     depsMap.forEach((dep, key) => {
       if (key === 'length' || key >= (newValue as number)) {
         deps.push(dep)
       }
     })
   } else {
+    // 不是数组情况，可能是对象，集合，
     // schedule runs for SET | ADD | DELETE
     if (key !== void 0) {
       deps.push(depsMap.get(key))
@@ -312,6 +361,7 @@ export function trigger(
     ? { target, type, key, newValue, oldValue, oldTarget }
     : undefined
 
+  // 下面是执行 所有 effect
   if (deps.length === 1) {
     if (deps[0]) {
       if (__DEV__) {
@@ -335,16 +385,23 @@ export function trigger(
   }
 }
 
+/**
+ * 执行 effect
+ * @param dep 
+ * @param debuggerEventExtraInfo 
+ */
 export function triggerEffects(
   dep: Dep | ReactiveEffect[],
   debuggerEventExtraInfo?: DebuggerEventExtraInfo
 ) {
   // spread into array for stabilization
+  // 循环执行所有的 effect
   for (const effect of isArray(dep) ? dep : [...dep]) {
     if (effect !== activeEffect || effect.allowRecurse) {
       if (__DEV__ && effect.onTrigger) {
         effect.onTrigger(extend({ effect }, debuggerEventExtraInfo))
       }
+      // 如果 effect 存在 scheduler，执行 scheduler 里的逻辑
       if (effect.scheduler) {
         effect.scheduler()
       } else {

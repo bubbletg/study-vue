@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="../dist/reactivity.global.js"></script>
+    <script>
+      let { reactive, shallowReactive, readonly, shallowReadonly } = VueReactivity;
+      let state = reactive({ name: 'BubbleTg', age: 25, com: { a: 1 } });
+      console.log('🚀 ~ file: 1.reactive-api.html ~ line 14 ~ state', state.com);
+      let state1 = shallowReactive({ name: 'BubbleTg', age: 25, com: { a: 1 } });
+      console.log('🚀 ~ file: 1.reactive-api.html ~ line 14 ~ state', state1.com);
+      let state2 = readonly({ name: 'BubbleTg', age: 25, com: { a: 1 } });
+      state2.com = { a: 1, b: 1 };
+      console.log('🚀 ~ file: 1.reactive-api.html ~ line 14 ~ state', state2.com);
+      let state3 = shallowReadonly({ name: 'BubbleTg', age: 25, com: { a: 1 } });
+      state3.com = { a: 1, b: 1 };
+      console.log('🚀 ~ file: 1.reactive-api.html ~ line 14 ~ state', state3.com);
+    </script>
+  </body>
+</html>
