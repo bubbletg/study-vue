@@ -50,10 +50,12 @@ function createArrayInstrumentations() {
   const instrumentations: Record<string, Function> = {}
   // instrument identity-sensitive Array methods to account for possible reactive
   // values
+  // 劫持数组原来方法，对数组每一项进行依赖收集
   ;(['includes', 'indexOf', 'lastIndexOf'] as const).forEach(key => {
     instrumentations[key] = function (this: unknown[], ...args: unknown[]) {
       const arr = toRaw(this) as any
       for (let i = 0, l = this.length; i < l; i++) {
+        // 依赖收集
         track(arr, TrackOpTypes.GET, i + '')
       }
       // we run the method using the original args first (which may be reactive)
@@ -70,7 +72,7 @@ function createArrayInstrumentations() {
   // which leads to infinite loops in some cases (#2137)
   ;(['push', 'pop', 'shift', 'unshift', 'splice'] as const).forEach(key => {
     instrumentations[key] = function (this: unknown[], ...args: unknown[]) {
-      pauseTracking()
+      pauseTracking() // 可以控制是否依赖收集
       const res = (toRaw(this) as any)[key].apply(this, args)
       resetTracking()
       return res
@@ -79,16 +81,23 @@ function createArrayInstrumentations() {
   return instrumentations
 }
 
+/**
+ * 创建get 方法，get 方法在代理对象获取值的时候执行
+ * @param isReadonly 是否只读
+ * @param shallow 浅代理
+ * @returns
+ */
 function createGetter(isReadonly = false, shallow = false) {
   return function get(target: Target, key: string | symbol, receiver: object) {
-    if (key === ReactiveFlags.IS_REACTIVE) {
+    // debugger
+    if (key === ReactiveFlags.IS_REACTIVE) { // 判断对象时 reactive 还是 readonly
       return !isReadonly
     } else if (key === ReactiveFlags.IS_READONLY) {
       return isReadonly
     } else if (key === ReactiveFlags.IS_SHALLOW) {
       return shallow
     } else if (
-      key === ReactiveFlags.RAW &&
+      key === ReactiveFlags.RAW && // 可以使用 toRaw 方法获取被代理对象对应的原值
       receiver ===
         (isReadonly
           ? shallow
@@ -102,22 +111,29 @@ function createGetter(isReadonly = false, shallow = false) {
       return target
     }
 
+    // 要代理的对象是否数组
     const targetIsArray = isArray(target)
 
+    //对数组进行特殊处理
     if (!isReadonly && targetIsArray && hasOwn(arrayInstrumentations, key)) {
+      // 重写 数组对应的方法，劫持数组原有方法
       return Reflect.get(arrayInstrumentations, key, receiver)
     }
 
+    // 拿到对应的值
     const res = Reflect.get(target, key, receiver)
 
+    // 不收集 symbol 和 __proto__ 的依赖 
     if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) {
       return res
     }
 
+    //不是只读
     if (!isReadonly) {
+      // 依赖收集
       track(target, TrackOpTypes.GET, key)
     }
-
+    // 浅代理
     if (shallow) {
       return res
     }
@@ -128,6 +144,7 @@ function createGetter(isReadonly = false, shallow = false) {
       return shouldUnwrap ? res.value : res
     }
 
+    // 取到目标值时对象时，递归代理
     if (isObject(res)) {
       // Convert returned value into a proxy as well. we do the isObject check
       // here to avoid invalid value warning. Also need to lazy access readonly
@@ -153,11 +170,14 @@ function createSetter(shallow = false) {
     if (isReadonly(oldValue) && isRef(oldValue) && !isRef(value)) {
       return false
     }
+    // 对象被深度代理，且不是只读
     if (!shallow && !isReadonly(value)) {
+      // 被深度代理
       if (!isShallow(value)) {
-        value = toRaw(value)
+        value = toRaw(value) // 把代理过的，把代理过的转换为普通值
         oldValue = toRaw(oldValue)
       }
+      // 不是数组，老的 value 是 ref,新的不是，给老的 ref的值 赋值为新的
       if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
         oldValue.value = value
         return true
@@ -166,6 +186,7 @@ function createSetter(shallow = false) {
       // in shallow mode, objects are set as-is regardless of reactive or not
     }
 
+    // 是否数组，且数组是修改，hadKey = true
     const hadKey =
       isArray(target) && isIntegerKey(key)
         ? Number(key) < target.length
@@ -174,8 +195,10 @@ function createSetter(shallow = false) {
     // don't trigger if target is something up in the prototype chain of original
     if (target === toRaw(receiver)) {
       if (!hadKey) {
+        // 派发更新
         trigger(target, TriggerOpTypes.ADD, key, value)
       } else if (hasChanged(value, oldValue)) {
+        // 修改
         trigger(target, TriggerOpTypes.SET, key, value, oldValue)
       }
     }

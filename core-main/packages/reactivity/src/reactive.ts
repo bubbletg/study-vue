@@ -89,9 +89,12 @@ export type UnwrapNestedRefs<T> = T extends Ref ? T : UnwrapRefSimple<T>
 export function reactive<T extends object>(target: T): UnwrapNestedRefs<T>
 export function reactive(target: object) {
   // if trying to observe a readonly proxy, return the readonly version.
+  // 已经代理只读，直接返回
   if (isReadonly(target)) {
     return target
   }
+  // debugger
+  // 创建响应式对象
   return createReactiveObject(
     target,
     false,
@@ -178,6 +181,15 @@ export function shallowReadonly<T extends object>(target: T): Readonly<T> {
   )
 }
 
+/**
+ * 创建响应式对象
+ * @param target
+ * @param isReadonly
+ * @param baseHandlers // 针对普通对象的 handlers
+ * @param collectionHandlers // 针对集合的 handlers
+ * @param proxyMap
+ * @returns
+ */
 function createReactiveObject(
   target: Target,
   isReadonly: boolean,
@@ -185,6 +197,7 @@ function createReactiveObject(
   collectionHandlers: ProxyHandler<any>,
   proxyMap: WeakMap<Target, any>
 ) {
+  // 不是对象，直接返回
   if (!isObject(target)) {
     if (__DEV__) {
       console.warn(`value cannot be made reactive: ${String(target)}`)
@@ -193,6 +206,8 @@ function createReactiveObject(
   }
   // target is already a Proxy, return it.
   // exception: calling readonly() on a reactive object
+  // 目标已经是一个代理，返回它。
+  // 例外：在反应对象上调用 readonly()
   if (
     target[ReactiveFlags.RAW] &&
     !(isReadonly && target[ReactiveFlags.IS_REACTIVE])
@@ -200,19 +215,23 @@ function createReactiveObject(
     return target
   }
   // target already has corresponding Proxy
+  // 目标已经有对应的Proxy
   const existingProxy = proxyMap.get(target)
   if (existingProxy) {
     return existingProxy
   }
   // only a whitelist of value types can be observed.
+  // 只能观察到值类型的白名单。
   const targetType = getTargetType(target)
-  if (targetType === TargetType.INVALID) {
+  if (targetType === TargetType.INVALID) { // 查看对象是否能被代理
     return target
   }
+  // 代理
   const proxy = new Proxy(
     target,
     targetType === TargetType.COLLECTION ? collectionHandlers : baseHandlers
   )
+  // 缓存代理，把需要代理的对象与代理后的结果建立关系，并缓存
   proxyMap.set(target, proxy)
   return proxy
 }
