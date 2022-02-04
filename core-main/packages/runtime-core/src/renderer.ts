@@ -367,33 +367,36 @@ function baseCreateRenderer(
     }
 
     // patching & not same type, unmount old tree
+    // patch ,新老节点不相同，直接移除老的节点
     if (n1 && !isSameVNodeType(n1, n2)) {
       anchor = getNextHostNode(n1)
       unmount(n1, parentComponent, parentSuspense, true)
       n1 = null
     }
 
+    // 是否需要优化
     if (n2.patchFlag === PatchFlags.BAIL) {
       optimized = false
       n2.dynamicChildren = null
     }
 
     const { type, ref, shapeFlag } = n2
+    // 处理不同类型
     switch (type) {
       case Text:
-        processText(n1, n2, container, anchor)
+        processText(n1, n2, container, anchor) // 处理文本
         break
       case Comment:
-        processCommentNode(n1, n2, container, anchor)
+        processCommentNode(n1, n2, container, anchor) // 处理注释
         break
-      case Static:
+      case Static: // 处理静态节点
         if (n1 == null) {
-          mountStaticNode(n2, container, anchor, isSVG)
+          mountStaticNode(n2, container, anchor, isSVG) // 挂载静态节点
         } else if (__DEV__) {
-          patchStaticNode(n1, n2, container, isSVG)
+          patchStaticNode(n1, n2, container, isSVG) // patch
         }
         break
-      case Fragment:
+      case Fragment: // 处理 Fragment
         processFragment(
           n1,
           n2,
@@ -408,6 +411,7 @@ function baseCreateRenderer(
         break
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
+          // 处理元素
           processElement(
             n1,
             n2,
@@ -420,6 +424,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // 处理组件
           processComponent(
             n1,
             n2,
@@ -432,6 +437,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.TELEPORT) {
+          // 处理 teleport
           ;(type as typeof TeleportImpl).process(
             n1 as TeleportVNode,
             n2 as TeleportVNode,
@@ -445,6 +451,7 @@ function baseCreateRenderer(
             internals
           )
         } else if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) {
+          // 处理 suspense
           ;(type as typeof SuspenseImpl).process(
             n1,
             n2,
@@ -570,6 +577,7 @@ function baseCreateRenderer(
     hostRemove(anchor!)
   }
 
+  // 处理元素
   const processElement = (
     n1: VNode | null,
     n2: VNode,
@@ -582,6 +590,7 @@ function baseCreateRenderer(
     optimized: boolean
   ) => {
     isSVG = isSVG || (n2.type as string) === 'svg'
+    // 老节点不存在，挂载元素
     if (n1 == null) {
       mountElement(
         n2,
@@ -594,6 +603,7 @@ function baseCreateRenderer(
         optimized
       )
     } else {
+      // 更新，patch
       patchElement(
         n1,
         n2,
@@ -606,6 +616,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 挂载元素
   const mountElement = (
     vnode: VNode,
     container: RendererElement,
@@ -631,6 +642,7 @@ function baseCreateRenderer(
       // only do this in production since cloned trees cannot be HMR updated.
       el = vnode.el = hostCloneNode(vnode.el)
     } else {
+      // 根据虚拟节点创建元素
       el = vnode.el = hostCreateElement(
         vnode.type as string,
         isSVG,
@@ -640,9 +652,13 @@ function baseCreateRenderer(
 
       // mount children first, since some props may rely on child content
       // being already rendered, e.g. `<select value>`
+      //  文本类型
       if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // 儿子是文本，直接插入
         hostSetElementText(el, vnode.children as string)
       } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // 数组类型，循环挂载
+        // 挂载孩子
         mountChildren(
           vnode.children as VNodeArrayChildren,
           el,
@@ -716,6 +732,7 @@ function baseCreateRenderer(
     if (needCallTransitionHooks) {
       transition!.beforeEnter(el)
     }
+    //  插入到父节点中
     hostInsert(el, container, anchor)
     if (
       (vnodeHook = props && props.onVnodeMounted) ||
@@ -768,6 +785,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 挂载孩子
   const mountChildren: MountChildrenFn = (
     children,
     container,
@@ -779,6 +797,7 @@ function baseCreateRenderer(
     optimized,
     start = 0
   ) => {
+    // 循环挂载
     for (let i = start; i < children.length; i++) {
       const child = (children[i] = optimized
         ? cloneIfMounted(children[i] as VNode)
@@ -1146,6 +1165,18 @@ function baseCreateRenderer(
     }
   }
 
+  /**
+   * 处理组件
+   * @param n1 老虚拟节点
+   * @param n2 行虚拟节点
+   * @param container
+   * @param anchor
+   * @param parentComponent
+   * @param parentSuspense
+   * @param isSVG
+   * @param slotScopeIds
+   * @param optimized
+   */
   const processComponent = (
     n1: VNode | null,
     n2: VNode,
@@ -1158,6 +1189,7 @@ function baseCreateRenderer(
     optimized: boolean
   ) => {
     n2.slotScopeIds = slotScopeIds
+    // 老虚拟节点不存在，组件挂载
     if (n1 == null) {
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
         ;(parentComponent!.ctx as KeepAliveContext).activate(
@@ -1168,6 +1200,7 @@ function baseCreateRenderer(
           optimized
         )
       } else {
+        // 组件的挂载流程
         mountComponent(
           n2,
           container,
@@ -1179,10 +1212,12 @@ function baseCreateRenderer(
         )
       }
     } else {
+      //  组件的更新流程
       updateComponent(n1, n2, optimized)
     }
   }
 
+  // 组件挂载
   const mountComponent: MountComponentFn = (
     initialVNode,
     container,
@@ -1196,6 +1231,7 @@ function baseCreateRenderer(
     // mounting
     const compatMountInstance =
       __COMPAT__ && initialVNode.isCompatRoot && initialVNode.component
+    // 1. 创建组件实例
     const instance: ComponentInternalInstance =
       compatMountInstance ||
       (initialVNode.component = createComponentInstance(
@@ -1223,6 +1259,7 @@ function baseCreateRenderer(
       if (__DEV__) {
         startMeasure(instance, `init`)
       }
+      //2. 设置组件实例属性
       setupComponent(instance)
       if (__DEV__) {
         endMeasure(instance, `init`)
@@ -1243,6 +1280,7 @@ function baseCreateRenderer(
       return
     }
 
+    //3. 设置组件渲染副作用函数
     setupRenderEffect(
       instance,
       initialVNode,
@@ -1260,7 +1298,9 @@ function baseCreateRenderer(
   }
 
   const updateComponent = (n1: VNode, n2: VNode, optimized: boolean) => {
+    //拿到老的组件实例,实现组件复用
     const instance = (n2.component = n1.component)!
+    // 比较两个组件
     if (shouldUpdateComponent(n1, n2, optimized)) {
       if (
         __FEATURE_SUSPENSE__ &&
@@ -1272,6 +1312,7 @@ function baseCreateRenderer(
         if (__DEV__) {
           pushWarningContext(n2)
         }
+        // 更新组件时候
         updateComponentPreRender(instance, n2, optimized)
         if (__DEV__) {
           popWarningContext()
@@ -1279,12 +1320,12 @@ function baseCreateRenderer(
         return
       } else {
         // normal update
-        instance.next = n2
+        instance.next = n2 // 拿到新的 vnode
         // in case the child component is also queued, remove it to avoid
         // double updating the same child component in the same flush.
-        invalidateJob(instance.update)
+        invalidateJob(instance.update) // 删除组件本身更新
         // instance.update is the reactive effect.
-        instance.update()
+        instance.update() // 执行更新
       }
     } else {
       // no update needed. just copy over properties
@@ -1294,6 +1335,7 @@ function baseCreateRenderer(
     }
   }
 
+  // 设置组件渲染副作用函数
   const setupRenderEffect: SetupRenderEffectFn = (
     instance,
     initialVNode,
@@ -1303,7 +1345,9 @@ function baseCreateRenderer(
     isSVG,
     optimized
   ) => {
+    // 组件更新方法
     const componentUpdateFn = () => {
+      // 当前组件没有挂载
       if (!instance.isMounted) {
         let vnodeHook: VNodeHook | null | undefined
         const { el, props } = initialVNode
@@ -1370,6 +1414,7 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `render`)
           }
+          //  获得子树，子虚拟节点
           const subTree = (instance.subTree = renderComponentRoot(instance))
           if (__DEV__) {
             endMeasure(instance, `render`)
@@ -1431,6 +1476,7 @@ function baseCreateRenderer(
             )
           }
         }
+        // 已经挂载
         instance.isMounted = true
 
         if (__DEV__ || __FEATURE_PROD_DEVTOOLS__) {
@@ -1440,6 +1486,7 @@ function baseCreateRenderer(
         // #2458: deference mount-only object parameters to prevent memleaks
         initialVNode = container = anchor = null as any
       } else {
+        // 更新组件调用
         // updateComponent
         // This is triggered by mutation of component's own state (next: null)
         // OR parent calling processComponent (next: VNode)
@@ -1454,6 +1501,7 @@ function baseCreateRenderer(
         toggleRecurse(instance, false)
         if (next) {
           next.el = vnode.el
+          // 在渲染之前更新组件
           updateComponentPreRender(instance, next, optimized)
         } else {
           next = vnode
@@ -1479,16 +1527,20 @@ function baseCreateRenderer(
         if (__DEV__) {
           startMeasure(instance, `render`)
         }
+        // 获得新的子树
         const nextTree = renderComponentRoot(instance)
         if (__DEV__) {
           endMeasure(instance, `render`)
         }
+        // 老的子树
         const prevTree = instance.subTree
+        // 新子树
         instance.subTree = nextTree
 
         if (__DEV__) {
           startMeasure(instance, `patch`)
         }
+        //  patch
         patch(
           prevTree,
           nextTree,
@@ -1541,6 +1593,7 @@ function baseCreateRenderer(
       }
     }
 
+    // 创建一个 effect
     // create reactive effect for rendering
     const effect = (instance.effect = new ReactiveEffect(
       componentUpdateFn,
@@ -1548,6 +1601,7 @@ function baseCreateRenderer(
       instance.scope // track it in component's effect scope
     ))
 
+    // 先 让 effect 执行
     const update = (instance.update = effect.run.bind(effect) as SchedulerJob)
     update.id = instance.uid
     // allowRecurse
@@ -1568,6 +1622,7 @@ function baseCreateRenderer(
     update()
   }
 
+  // 更新组件renden
   const updateComponentPreRender = (
     instance: ComponentInternalInstance,
     nextVNode: VNode,
@@ -1577,7 +1632,9 @@ function baseCreateRenderer(
     const prevProps = instance.vnode.props
     instance.vnode = nextVNode
     instance.next = null
+    // 更新属性
     updateProps(instance, nextVNode.props, prevProps, optimized)
+    // 更新slots
     updateSlots(instance, nextVNode.children, optimized)
 
     pauseTracking()
@@ -2300,12 +2357,15 @@ function baseCreateRenderer(
     return hostNextSibling((vnode.anchor || vnode.el)!)
   }
 
+  // render 函数
   const render: RootRenderFunction = (vnode, container, isSVG) => {
+    // 没有虚拟节点，卸载组件
     if (vnode == null) {
       if (container._vnode) {
         unmount(container._vnode, null, null, true)
       }
     } else {
+      //  patch 过程
       patch(container._vnode || null, vnode, container, null, null, null, isSVG)
     }
     flushPostFlushCbs()

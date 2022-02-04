@@ -446,6 +446,7 @@ const emptyAppContext = createAppContext()
 
 let uid = 0
 
+// 创建组件实例
 export function createComponentInstance(
   vnode: VNode,
   parent: ComponentInternalInstance | null,
@@ -455,7 +456,7 @@ export function createComponentInstance(
   // inherit parent app context - or - if root, adopt from root vnode
   const appContext =
     (parent ? parent.appContext : vnode.appContext) || emptyAppContext
-
+  // 组件实例
   const instance: ComponentInternalInstance = {
     uid: uid++,
     vnode,
@@ -531,12 +532,16 @@ export function createComponentInstance(
     ec: null,
     sp: null
   }
+  // ctx 上下文
   if (__DEV__) {
+    // 创建 render 函数上下文
     instance.ctx = createDevRenderContext(instance)
   } else {
     instance.ctx = { _: instance }
   }
+  // 当前组件实例的根
   instance.root = parent ? parent.root : instance
+  // emit 方法
   instance.emit = emit.bind(null, instance)
 
   // apply custom element special handling
@@ -579,6 +584,7 @@ export function isStatefulComponent(instance: ComponentInternalInstance) {
 
 export let isInSSRComponentSetup = false
 
+// 设置组件实例的属性
 export function setupComponent(
   instance: ComponentInternalInstance,
   isSSR = false
@@ -587,9 +593,12 @@ export function setupComponent(
 
   const { props, children } = instance.vnode
   const isStateful = isStatefulComponent(instance)
+  //  初始化属性
   initProps(instance, props, isStateful, isSSR)
+  // 初始化插槽
   initSlots(instance, children)
 
+  // 初始化组件 setup 方法
   const setupResult = isStateful
     ? setupStatefulComponent(instance, isSSR)
     : undefined
