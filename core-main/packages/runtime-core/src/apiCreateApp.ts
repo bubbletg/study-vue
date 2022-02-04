@@ -174,6 +174,12 @@ export type CreateAppFunction<HostElement> = (
 
 let uid = 0
 
+/**
+ * 创建 reateApp 函数
+ * @param render render 函数
+ * @param hydrate
+ * @returns 一个函数 createApp
+ */
 export function createAppAPI<HostElement>(
   render: RootRenderFunction,
   hydrate?: RootHydrateFunction
@@ -211,6 +217,7 @@ export function createAppAPI<HostElement>(
         }
       },
 
+      // use 方法，可以使用插件
       use(plugin: Plugin, ...options: any[]) {
         if (installedPlugins.has(plugin)) {
           __DEV__ && warn(`Plugin has already been applied to target app.`)
@@ -229,6 +236,7 @@ export function createAppAPI<HostElement>(
         return app
       },
 
+      // mixin 方法，兼容 vue2
       mixin(mixin: ComponentOptions) {
         if (__FEATURE_OPTIONS_API__) {
           if (!context.mixins.includes(mixin)) {
@@ -279,7 +287,9 @@ export function createAppAPI<HostElement>(
         isHydrate?: boolean,
         isSVG?: boolean
       ): any {
-        if (!isMounted) {
+
+        if (!isMounted) { // 是否挂载
+          // 创建虚拟节点
           const vnode = createVNode(
             rootComponent as ConcreteComponent,
             rootProps
@@ -298,9 +308,10 @@ export function createAppAPI<HostElement>(
           if (isHydrate && hydrate) {
             hydrate(vnode as VNode<Node, Element>, rootContainer as any)
           } else {
-            render(vnode, rootContainer, isSVG)
+            render(vnode, rootContainer, isSVG)  // 虚拟节点渲染到页面
           }
-          isMounted = true
+
+          isMounted = true // 挂载完毕
           app._container = rootContainer
           // for devtools and telemetry
           ;(rootContainer as any).__vue_app__ = app

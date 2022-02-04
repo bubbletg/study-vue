@@ -318,6 +318,7 @@ const isElementRoot = (vnode: VNode) => {
   )
 }
 
+// 判断组件更新
 export function shouldUpdateComponent(
   prevVNode: VNode,
   nextVNode: VNode,

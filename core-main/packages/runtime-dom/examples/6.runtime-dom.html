@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">11111111</div>
+    <script src="../dist/runtime-dom.global.js"></script>
+    <script>
+      let { createApp, h, reactive } = VueRuntimeDOM;
+
+      let appOptions = {
+        setup(props, context) {
+          const state = reactive({ name: 'BubbleTg' });
+          const fn = () => {
+            state.name = 'Bubble 变化了';
+          };
+          setTimeout(() => {
+            state.name = 'Bubble 变化了';
+          }, 3000);
+          return function render() {
+            const h2 = h(
+              'div',
+              {
+                key: 'h1',
+              },
+              [
+                h('li', { key: 'a' }, 'a'),
+                h('li', { key: 'b' }, 'b'),
+                h('li', { key: 'e' }, 'e'),
+                h('li', { key: 'c' }, 'c'),
+                h('li', { key: 'd' }, 'd'),
+                h('li', { key: 'h' }, 'h'),
+                h('li', { key: 'f' }, 'f'),
+                h('li', { key: 'g' }, 'g'),
+                // h('li', { key: 'a', style: { color: 'red' } }, 'a'),
+                // h('li', { key: 'd', style: { color: 'yellow' } }, 'd'),
+                // h('li', { key: 'b', style: { color: 'red' } }, 'b'),
+                // h('li', { key: 'c', style: { color: 'blue' } }, 'c'),
+                // h('li', { key: 'e', style: { color: 'red' } }, 'e'),
+                // h('li', { key: 'f', style: { color: 'blue' } }, 'f'),
+                // h('li', { key: 'g', style: { color: 'red' } }, 'g'),
+              ]
+            );
+            const h1 = h(
+              'div',
+              {
+                key: 'h1',
+                style: {
+                  color: 'red',
+                },
+              },
+              [
+                h('li', { key: 'a' }, 'a'),
+                h('li', { key: 'b' }, 'b'),
+                h('li', { key: 'c' }, 'c'),
+                h('li', { key: 'd' }, 'd'),
+                h('li', { key: 'e' }, 'e'),
+                h('li', { key: 'f' }, 'f'),
+                h('li', { key: 'g' }, 'g'),
+              ]
+            );
+            return state.name == 'Bubble 变化了' ? h2 : h1;
+          };
+        },
+      };
+      debugger
+      const app = createApp(appOptions, { name: 'VueRuntimeDOM', age: 12 })
+
+      const proxy = app.mount('#app');
+      console.log("🚀 ~ file: 6.runtime-dom.html ~ line 72 ~ proxy", proxy)
+    </script>
+  </body>
+</html>
