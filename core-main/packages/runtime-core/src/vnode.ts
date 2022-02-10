@@ -470,6 +470,7 @@ function createBaseVNode(
     // vnode should not be considered dynamic due to handler caching.
     vnode.patchFlag !== PatchFlags.HYDRATE_EVENTS
   ) {
+    // 收集动态节点
     currentBlock.push(vnode)
   }
 

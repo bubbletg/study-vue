@@ -83,6 +83,7 @@ export function FunctionalRenderContext (
 
 installRenderHelpers(FunctionalRenderContext.prototype)
 
+// 创建函数式组件
 export function createFunctionalComponent (
   Ctor: Class<Component>,
   propsData: ?Object,
@@ -102,6 +103,7 @@ export function createFunctionalComponent (
     if (isDef(data.props)) mergeProps(props, data.props)
   }
 
+  // 创建函数组件的上下文
   const renderContext = new FunctionalRenderContext(
     data,
     props,

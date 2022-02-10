@@ -90,10 +90,10 @@ export const enum PatchFlags {
    * iterated value, or dynamic slot names).
    * Components with this flag are always force updated.
    */
-  DYNAMIC_SLOTS = 1 << 10,
 
   /**
-   * Indicates a fragment that was created only because the user has placed
+   * Indicates a fragment that was created o
+  DYNAMIC_SLOTS = 1 << 10,nly because the user has placed
    * comments at the root level of a template. This is a dev-only flag since
    * comments are stripped in production.
    */
