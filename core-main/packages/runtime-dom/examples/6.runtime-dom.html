@@ -10,17 +10,35 @@
     <div id="app">11111111</div>
     <script src="../dist/runtime-dom.global.js"></script>
     <script>
-      let { createApp, h, reactive } = VueRuntimeDOM;
+      let {
+        createApp,
+        h,
+        reactive,
+        onBeforeMount,
+        onMounted,
+        onBeforeUpdate,
+        onUpdated,
+      } = VueRuntimeDOM;
 
-      let appOptions = {
+      let app = {
         setup(props, context) {
           const state = reactive({ name: 'BubbleTg' });
-          const fn = () => {
-            state.name = 'Bubble 变化了';
-          };
+
           setTimeout(() => {
             state.name = 'Bubble 变化了';
           }, 3000);
+          onBeforeMount(() => {
+            console.log('🚀 ~ file: 7.lifecycle.html ~ line 25 ~ onBeforeMount ~ onBeforeMount');
+          });
+          onMounted(() => {
+            console.log('onMounted');
+          });
+          onBeforeUpdate(() => {
+            console.log('onBeforeUpdate');
+          });
+          onUpdated(() => {
+            console.log('onUpdated');
+          });
           return function render() {
             const h2 = h(
               'div',
@@ -28,21 +46,12 @@
                 key: 'h1',
               },
               [
-                h('li', { key: 'a' }, 'a'),
-                h('li', { key: 'b' }, 'b'),
-                h('li', { key: 'e' }, 'e'),
-                h('li', { key: 'c' }, 'c'),
-                h('li', { key: 'd' }, 'd'),
-                h('li', { key: 'h' }, 'h'),
-                h('li', { key: 'f' }, 'f'),
-                h('li', { key: 'g' }, 'g'),
-                // h('li', { key: 'a', style: { color: 'red' } }, 'a'),
-                // h('li', { key: 'd', style: { color: 'yellow' } }, 'd'),
-                // h('li', { key: 'b', style: { color: 'red' } }, 'b'),
-                // h('li', { key: 'c', style: { color: 'blue' } }, 'c'),
-                // h('li', { key: 'e', style: { color: 'red' } }, 'e'),
-                // h('li', { key: 'f', style: { color: 'blue' } }, 'f'),
-                // h('li', { key: 'g', style: { color: 'red' } }, 'g'),
+                h('li', { key: 'd', style: { color: 'yellow' } }, 'd'),
+                h('li', { key: 'b', style: { color: 'red' } }, 'b'),
+                h('li', { key: 'c', style: { color: 'blue' } }, 'c'),
+                h('li', { key: 'e', style: { color: 'red' } }, 'e'),
+                h('li', { key: 'f', style: { color: 'blue' } }, 'f'),
+                h('li', { key: 'g', style: { color: 'red' } }, 'g'),
               ]
             );
             const h1 = h(
@@ -53,25 +62,14 @@
                   color: 'red',
                 },
               },
-              [
-                h('li', { key: 'a' }, 'a'),
-                h('li', { key: 'b' }, 'b'),
-                h('li', { key: 'c' }, 'c'),
-                h('li', { key: 'd' }, 'd'),
-                h('li', { key: 'e' }, 'e'),
-                h('li', { key: 'f' }, 'f'),
-                h('li', { key: 'g' }, 'g'),
-              ]
+              h('li', { key: 'a' }, 'a')
             );
             return state.name == 'Bubble 变化了' ? h2 : h1;
           };
         },
       };
-      debugger
-      const app = createApp(appOptions, { name: 'VueRuntimeDOM', age: 12 })
 
-      const proxy = app.mount('#app');
-      console.log("🚀 ~ file: 6.runtime-dom.html ~ line 72 ~ proxy", proxy)
+      createApp(app, { name: 'VueRuntimeDOM', age: 12 }).mount('#app');
     </script>
   </body>
 </html>

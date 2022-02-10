@@ -826,6 +826,7 @@ function baseCreateRenderer(
     optimized: boolean
   ) => {
     const el = (n2.el = n1.el!)
+    // dynamicChildren 动态孩子
     let { patchFlag, dynamicChildren, dirs } = n2
     // #1426 take the old vnode's patch flag into account since user may clone a
     // compiler-generated vnode, which de-opts to FULL_PROPS
@@ -852,7 +853,9 @@ function baseCreateRenderer(
     }
 
     const areChildrenSVG = isSVG && n2.type !== 'foreignObject'
+    // 存在动态的孩子
     if (dynamicChildren) {
+      // 直接根据动态孩子来比较
       patchBlockChildren(
         n1.dynamicChildren!,
         dynamicChildren,
@@ -866,7 +869,7 @@ function baseCreateRenderer(
         traverseStaticChildren(n1, n2)
       }
     } else if (!optimized) {
-      // full diff
+      // full diff 
       patchChildren(
         n1,
         n2,
@@ -1817,6 +1820,7 @@ function baseCreateRenderer(
     slotScopeIds: string[] | null,
     optimized: boolean
   ) => {
+    debugger
     let i = 0
     const l2 = c2.length
     let e1 = c1.length - 1 // prev ending index
