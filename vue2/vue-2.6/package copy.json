@@ -2,8 +2,8 @@
   "name": "vue",
   "version": "2.5.21",
   "description": "Reactive, component-oriented view layer for modern web interfaces.",
-  "main": "dist/vue.runtime.common.js", 
-  "module": "dist/vue.runtime.esm.js",  
+  "main": "dist/vue.runtime.common.js", // require('vue')
+  "module": "dist/vue.runtime.esm.js", // import vue from 'vue'
   "unpkg": "dist/vue.js",
   "jsdelivr": "dist/vue.js",
   "typings": "types/index.d.ts",
@@ -13,8 +13,8 @@
     "types/*.d.ts"
   ],
   "sideEffects": false,
-  "scripts": {  
-    "dev": "rollup -w -c scripts/config.js --sourcemap --environment TARGET:web-full-dev",
+  "scripts": { // rollup 打包工具只能打包js 文件 
+    "dev": "rollup -w -c scripts/config.js --environment TARGET:web-full-dev",
     "dev:cjs": "rollup -w -c scripts/config.js --environment TARGET:web-runtime-cjs-dev",
     "dev:esm": "rollup -w -c scripts/config.js --environment TARGET:web-runtime-esm",
     "dev:test": "karma start test/unit/karma.dev.config.js",
